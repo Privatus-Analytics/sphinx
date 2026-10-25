@@ -136,3 +136,38 @@ def test_props_callable_gets_the_page_name(tmp_path):
 def test_custom_builders_list(tmp_path):
     out = build(tmp_path, 'privatus_site_id = "pa_TEST123456"\nprivatus_builders = ["dirhtml"]\n')
     assert "/js/pa.js" not in (out / "index.html").read_text()
+
+
+STUB = "<script>" + _core.QUEUE_STUB + "</script>"
+
+
+def test_off_with_the_queue_stub_adds_only_the_stub(tmp_path):
+    conf = (
+        'privatus_site_id = "pa_TEST123456"\nprivatus_enabled = False\nprivatus_queue_stub = True\n'
+        'privatus_nonce = "n1"\nprivatus_props = {"plan": "pro"}\n'
+    )
+    page = head(build(tmp_path, conf) / "index.html")
+    assert page.count('<script nonce="n1">' + _core.QUEUE_STUB + "</script>") == 1
+    assert "/js/pa.js" not in page
+    assert "privatusPageProps" not in page
+
+
+def test_off_without_the_queue_stub_adds_nothing(tmp_path):
+    conf = 'privatus_site_id = "pa_TEST123456"\nprivatus_enabled = False\nprivatus_props = {"plan": "pro"}\n'
+    page = head(build(tmp_path, conf) / "index.html")
+    assert "window.privatus" not in page
+    assert "/js/pa.js" not in page
+
+
+def test_no_site_id_with_the_queue_stub_adds_only_the_stub_and_skips_the_props_function(tmp_path):
+    # The props function fails the build if it is called.
+    conf = "privatus_queue_stub = True\ndef privatus_props(page):\n    raise RuntimeError('props called')\n"
+    page = head(build(tmp_path, conf) / "index.html")
+    assert page.count(STUB) == 1
+    assert "/js/pa.js" not in page
+    assert "privatusPageProps" not in page
+
+
+def test_the_stub_is_not_added_to_epub(tmp_path):
+    out = build(tmp_path, 'privatus_site_id = "pa_TEST123456"\nprivatus_queue_stub = True\n', builder="epub")
+    assert "window.privatus" not in "".join(p.read_text() for p in out.glob("*.xhtml"))

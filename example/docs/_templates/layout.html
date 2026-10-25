@@ -1,0 +1,12 @@
+{%- extends "!layout.html" %}
+{#- On /off and /off-plain, print what the extension added between two marker tags. #}
+{%- block scripts %}
+{%- if off_markers %}
+{%- for js in script_files if js.filename and "/js/pa.js" not in js.filename %}
+    {{ js_tag(js) }}
+{%- endfor %}
+    <meta name="privatus-off-start">{% for js in script_files if not js.filename or "/js/pa.js" in js.filename %}{{ js_tag(js) }}{% endfor %}<meta name="privatus-off-end">
+{%- else %}
+{{- super() }}
+{%- endif %}
+{%- endblock %}

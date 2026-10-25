@@ -79,14 +79,24 @@ def _string_attributes(attrs: dict[str, Any]) -> dict[str, str]:
     return {name: (name if value is True else str(value)) for name, value in attrs.items()}
 
 
+def is_web_page(app: Sphinx) -> bool:
+    """Whether this build makes web pages: a builder in `privatus_builders`, or any HTML builder when
+    `privatus_enabled` is set."""
+    if app.config.privatus_enabled is not None:
+        return getattr(app.builder, "format", "") == "html"
+    return app.builder.name in tuple(app.config.privatus_builders or ())
+
+
 def add_tag(app: Sphinx, pagename: str, templatename: str, context: dict[str, Any], doctree: Any) -> None:
     """Adds the scripts to one page. Sphinx resets page scripts after each page."""
-    if not is_enabled(app):
-        return
     settings = settings_from_config(app.config)
-    if settings.resolved_site_id() is None:
-        return
     nonce = {"nonce": settings.nonce} if settings.nonce else {}
+    if not is_enabled(app) or settings.resolved_site_id() is None:
+        # The tag is off: only the queue stub (when it is on), so privatus.track calls never fail.
+        # Props are not worked out, and builds that make no web pages (epub and so on) get nothing.
+        if settings.queue_stub is True and is_web_page(app):
+            app.add_js_file(None, priority=PRIORITY, body=QUEUE_STUB, **nonce)
+        return
     props_json = page_props_json(page_props(app, pagename))
     if settings.queue_stub is True:
         app.add_js_file(None, priority=PRIORITY, body=QUEUE_STUB, **nonce)

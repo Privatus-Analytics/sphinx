@@ -52,8 +52,10 @@ every page (Sphinx writes `defer="defer"`, which means the same as `defer`):
 <script data-site="pa_YOURSITEID" defer="defer" src="https://privatusstats.com/js/pa.js"></script>
 ```
 
-Nothing is added when there is no site id, and nothing for other builders such
-as `epub`, `latexpdf` or the offline help formats.
+No tag is added when there is no site id, and nothing for other builders such
+as `epub`, `latexpdf` or the offline help formats. (With
+`privatus_queue_stub = True`, web pages still get the small queue stub, see
+below.)
 
 ## Read the Docs
 
@@ -254,9 +256,10 @@ privatus.track("Feature used", { feature: "search" })
 
 If your code may run before the tracker has loaded, set
 `privatus_queue_stub = True`. It adds a tiny script before the tracker that
-keeps your calls in a list and sends them once the tracker is ready. Like the
-tag, the stub is only added where the tag is on, so use
-`window.privatus && privatus.track(...)` if some builds have no tag.
+keeps your calls in a list and sends them once the tracker is ready. The stub
+is added to your web pages even when the tag is off (with
+`privatus_enabled = False` or with no site id). Then your `privatus.track`
+calls never fail: they wait in the list and are never sent.
 
 ### See the results
 
@@ -277,6 +280,15 @@ no names, emails or user ids. See the [privacy
 documentation](https://privatusanalytics.com/docs/privacy) for what is
 collected.
 
+If you have a privacy policy, it should say which tools handle your visitors' data. You can paste this:
+
+> This website uses [Privatus Analytics](https://privatusanalytics.com/privacy-analytics) to count visits. It
+> does not use cookies and does not follow you from one website to another. Your IP address is used for a moment
+> to count visits and is never stored.
+
+Change it to fit your site. The [privacy policy generator](https://privatusanalytics.com/tools/privacy-policy-generator)
+makes a longer version with your site's name in it.
+
 ## Development
 
 The tests run in Docker so your local Python does not matter:
@@ -288,6 +300,11 @@ The tests run in Docker so your local Python does not matter:
 It runs pytest (with real Sphinx builds of a tiny project with the `html`,
 `dirhtml`, `singlehtml`, `epub` and `text` builders), Ruff, and the package
 build.
+
+The `example/` folder holds a tiny site for the [conformance
+tests](https://github.com/Privatus-Analytics/conformance), which open it in a
+real browser with the real tracker. Run them from a copy of that repo with
+`./run.sh ../sphinx`.
 
 ## Contributing
 
