@@ -257,9 +257,12 @@ privatus.track("Feature used", { feature: "search" })
 If your code may run before the tracker has loaded, set
 `privatus_queue_stub = True`. It adds a tiny script before the tracker that
 keeps your calls in a list and sends them once the tracker is ready. The stub
-is added to your web pages even when the tag is off (with
-`privatus_enabled = False` or with no site id). Then your `privatus.track`
-calls never fail: they wait in the list and are never sent.
+is added to every web page even when the tag is off (with
+`privatus_enabled = False` or with no site id), so your `privatus.track`
+calls never fail while you write: they wait in the list and are never sent.
+Then the extension adds the stub alone, once per page, with no tracker and no
+page props, and it does not call a `privatus_props` function. With
+`privatus_queue_stub = False` nothing is added when the tag is off.
 
 ### See the results
 

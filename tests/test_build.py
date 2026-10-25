@@ -171,3 +171,33 @@ def test_no_site_id_with_the_queue_stub_adds_only_the_stub_and_skips_the_props_f
 def test_the_stub_is_not_added_to_epub(tmp_path):
     out = build(tmp_path, 'privatus_site_id = "pa_TEST123456"\nprivatus_queue_stub = True\n', builder="epub")
     assert "window.privatus" not in "".join(p.read_text() for p in out.glob("*.xhtml"))
+
+
+PAGES = ("index.html", "guide.html", "genindex.html", "search.html")
+
+
+def test_off_with_the_queue_stub_adds_one_stub_to_every_page_and_never_calls_props(tmp_path):
+    conf = (
+        'privatus_site_id = "pa_TEST123456"\nprivatus_enabled = False\nprivatus_queue_stub = True\n'
+        "def privatus_props(page):\n    raise RuntimeError('props called')\n"
+    )
+    out = build(tmp_path, conf)
+    for name in PAGES:
+        html = (out / name).read_text()
+        assert head(out / name).count(STUB) == 1, name
+        assert html.count("window.privatus=window.privatus") == 1, name
+        assert "/js/pa.js" not in html, name
+        assert "privatusPageProps" not in html, name
+        assert "data-props" not in html, name
+
+
+def test_off_without_the_queue_stub_adds_nothing_to_any_page(tmp_path):
+    conf = (
+        'privatus_site_id = "pa_TEST123456"\nprivatus_enabled = False\n'
+        "def privatus_props(page):\n    raise RuntimeError('props called')\n"
+    )
+    out = build(tmp_path, conf)
+    for name in PAGES:
+        html = (out / name).read_text()
+        assert "window.privatus" not in html, name
+        assert "/js/pa.js" not in html, name
