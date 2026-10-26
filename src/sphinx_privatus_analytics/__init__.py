@@ -14,7 +14,7 @@ from ._core import QUEUE_STUB, Settings, merge_props, page_props_json, props_scr
 if TYPE_CHECKING:
     from sphinx.application import Sphinx
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 # Builders that make web pages. Offline help formats such as epub, htmlhelp
 # and qthelp are left out on purpose.
